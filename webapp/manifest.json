@@ -1,0 +1,124 @@
+{
+  "_version": "1.89.0",
+  "sap.app": {
+    "id": "vpauseraccess",
+    "type": "application",
+    "i18n": {
+      "bundleUrl": "i18n/i18n.properties",
+      "supportedLocales": [
+        ""
+      ],
+      "fallbackLocale": ""
+    },
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:basic",
+      "version": "1.33.0",
+      "toolsId": "17fe9ceb-e4b9-4c07-81cd-ae3cf16c53b1"
+    },
+    "crossNavigation": {
+      "inbounds": {
+        "VPAUserAccess-manage": {
+          "semanticObject": "VPAUserAccess",
+          "action": "manage",
+          "title": "{{VPAUserAccess-manage.flpTitle}}",
+          "subTitle": "{{VPAUserAccess-manage.flpSubtitle}}",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": false,
+    "dependencies": {
+      "minUI5Version": "1.153.0",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "vpauseraccess.i18n.i18n",
+          "supportedLocales": [""],
+          "fallbackLocale": ""
+        }
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "controlAggregation": "pages",
+        "controlId": "app",
+        "transition": "slide",
+        "type": "View",
+        "viewType": "XML",
+        "path": "vpauseraccess.view",
+        "async": true,
+        "viewPath": "vpauseraccess.view"
+      },
+      "routes": [
+        {
+          "name": "Routeubac",
+          "pattern": ":?query:",
+          "target": [
+            "Targetubac"
+          ]
+        }
+      ],
+      "targets": {
+        "Targetubac": {
+          "id": "ubac",
+          "name": "ubac"
+        }
+      }
+    },
+    "rootView": {
+      "viewName": "vpauseraccess.view.App",
+      "type": "XML",
+      "id": "App",
+      "async": true
+    }
+  },
+  "sap.cloud": {
+    "public": true,
+    "service": "vpauseraccess"
+  }
+}

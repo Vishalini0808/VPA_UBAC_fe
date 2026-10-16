@@ -1,0 +1,84 @@
+<mvc:View
+    controllerName="vpauseraccess.controller.ubac"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m">
+
+    <Page title="VPA User Access Control">
+        <content>
+            <VBox class="sapUiMediumMargin" width="100%">
+                <Title text="Welcome to VPA" level="H2" />
+
+                <Text id="userText"
+                      text="Checking logged-in user..."
+                      class="sapUiSmallMarginBottom" />
+
+                <MessageStrip text="{access>/error}"
+                              type="Error"
+                              showIcon="true"
+                              visible="{= !!${access>/error} }"
+                              class="sapUiSmallMarginBottom" />
+
+                <Title text="Applications"
+                       level="H3"
+                       class="sapUiMediumMarginTop sapUiSmallMarginBottom" />
+
+                <Text text="No applications are assigned to your account."
+                      visible="{= ${access>/ready} &amp;&amp; ${access>/none} }" />
+
+                <HBox wrap="Wrap">
+                    <GenericTile
+                        class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
+                        frameType="TwoByOne"
+                        header="Master Data Management"
+                        subheader="Manage master data"
+                        visible="{access>/masterData/visible}"
+                        state="{access>/masterData/state}"
+                        press=".onMasterDataPress">
+                        <TileContent footer="{access>/masterData/note}">
+                            <ImageContent src="sap-icon://database" />
+                        </TileContent>
+                    </GenericTile>
+
+                    <GenericTile
+                        class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
+                        frameType="TwoByOne"
+                        header="Master Data Approval"
+                        subheader="Review master data records"
+                        visible="{access>/approvalMasterData/visible}"
+                        state="{access>/approvalMasterData/state}"
+                        press=".onMasterApprovalPress">
+                        <TileContent footer="{access>/approvalMasterData/note}">
+                            <ImageContent src="sap-icon://approvals" />
+                        </TileContent>
+                    </GenericTile>
+
+                    <GenericTile
+                        class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
+                        frameType="TwoByOne"
+                        header="Vehicle Pricing"
+                        subheader="Calculate vehicle pricing"
+                        visible="{access>/pricing/visible}"
+                        state="{access>/pricing/state}"
+                        press=".onPricingPress">
+                        <TileContent footer="{access>/pricing/note}">
+                            <ImageContent src="sap-icon://money-bills" />
+                        </TileContent>
+                    </GenericTile>
+
+                    <GenericTile
+                        class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
+                        frameType="TwoByOne"
+                        header="Pricing Approval"
+                        subheader="Review pricing records"
+                        visible="{access>/approvalPricing/visible}"
+                        state="{access>/approvalPricing/state}"
+                        press=".onPricingApprovalPress">
+                        <TileContent footer="{access>/approvalPricing/note}">
+                            <ImageContent src="sap-icon://approvals" />
+                        </TileContent>
+                    </GenericTile>
+                </HBox>
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>
