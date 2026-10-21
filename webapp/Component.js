@@ -1,7 +1,8 @@
 sap.ui.define([
     "sap/ui/core/UIComponent",
-    "vpauseraccess/model/models"
-], (UIComponent, models) => {
+    "vpauseraccess/model/models",
+    "vpauseraccess/model/access"
+], (UIComponent, models, Access) => {
     "use strict";
 
     return UIComponent.extend("vpauseraccess.Component", {
@@ -19,8 +20,24 @@ sap.ui.define([
             // set the device model
             this.setModel(models.createDeviceModel(), "device");
 
-            // enable routing
-            this.getRouter().initialize();
+            // set the access model (filled below)
+            const oModel = Access.createModel();
+            this.setModel(oModel, "access");
+
+            // Start the router only after access is known, so a single-destination
+            // user is redirected before the hub is ever drawn.
+            Access.load(oModel).then((oData) => {
+                const sTarget = oData ? Access.redirectTarget(oData) : "";
+                return sTarget ? Access.go(oModel, sTarget) : false;
+            }).catch((oError) => {
+                console.error("Startup failed:", oError);
+                return false;
+            }).then((bRedirected) => {
+                if (!bRedirected) {
+                    // enable routing
+                    this.getRouter().initialize();
+                }
+            });
         }
     });
 });

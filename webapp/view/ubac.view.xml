@@ -1,40 +1,105 @@
 <mvc:View
     controllerName="vpauseraccess.controller.ubac"
     xmlns:mvc="sap.ui.core.mvc"
+    xmlns:core="sap.ui.core"
     xmlns="sap.m">
 
-    <Page title="VPA User Access Control">
-        <content>
-            <VBox class="sapUiMediumMargin" width="100%">
-                <Title text="Welcome to VPA" level="H2" />
+    <NavContainer id="nav" initialPage="pageHome" height="100%">
 
-                <Text id="userText"
-                      text="Checking logged-in user..."
-                      class="sapUiSmallMarginBottom" />
+        <!-- ============ HOME: group tiles ============ -->
+        <Page id="pageHome" title="VPA User Access Control">
+            <content>
+                <VBox class="sapUiMediumMargin" width="100%">
+                    <Title text="Welcome to VPA" level="H2" />
 
-                <MessageStrip text="{access>/error}"
-                              type="Error"
-                              showIcon="true"
-                              visible="{= !!${access>/error} }"
-                              class="sapUiSmallMarginBottom" />
+                    <Text text="{access>/userText}"
+                          class="sapUiSmallMarginBottom" />
 
-                <Title text="Applications"
-                       level="H3"
-                       class="sapUiMediumMarginTop sapUiSmallMarginBottom" />
+                    <MessageStrip text="{access>/error}"
+                                  type="Error"
+                                  showIcon="true"
+                                  visible="{= !!${access>/error} }"
+                                  class="sapUiSmallMarginBottom" />
 
-                <Text text="No applications are assigned to your account."
-                      visible="{= ${access>/ready} &amp;&amp; ${access>/none} }" />
+                    <Title text="Applications"
+                           level="H3"
+                           class="sapUiMediumMarginTop sapUiSmallMarginBottom" />
 
-                <HBox wrap="Wrap">
+                    <Text text="No applications are assigned to your account."
+                          visible="{= ${access>/ready} &amp;&amp; ${access>/none} }" />
+
+                    <HBox wrap="Wrap">
+                        <GenericTile
+                            class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
+                            frameType="TwoByOne"
+                            header="Master Data"
+                            subheader="Manage master data"
+                            visible="{access>/groups/masterData/visible}"
+                            state="{access>/groups/masterData/state}"
+                            press=".onGroupPress">
+                            <customData>
+                                <core:CustomData key="group" value="masterData" />
+                            </customData>
+                            <TileContent footer="{access>/groups/masterData/note}">
+                                <ImageContent src="sap-icon://database" />
+                            </TileContent>
+                        </GenericTile>
+
+                        <GenericTile
+                            class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
+                            frameType="TwoByOne"
+                            header="Pricing Calculation"
+                            subheader="Calculate and approve pricing"
+                            visible="{access>/groups/pricing/visible}"
+                            state="{access>/groups/pricing/state}"
+                            press=".onGroupPress">
+                            <customData>
+                                <core:CustomData key="group" value="pricing" />
+                            </customData>
+                            <TileContent footer="{access>/groups/pricing/note}">
+                                <ImageContent src="sap-icon://money-bills" />
+                            </TileContent>
+                        </GenericTile>
+
+                        <GenericTile
+                            class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
+                            frameType="TwoByOne"
+                            header="UBAC"
+                            subheader="Manage user access"
+                            visible="{access>/groups/ubac/visible}"
+                            state="{access>/groups/ubac/state}"
+                            press=".onGroupPress">
+                            <customData>
+                                <core:CustomData key="group" value="ubac" />
+                            </customData>
+                            <TileContent footer="{access>/groups/ubac/note}">
+                                <ImageContent src="sap-icon://user-settings" />
+                            </TileContent>
+                        </GenericTile>
+                    </HBox>
+                </VBox>
+            </content>
+        </Page>
+
+        <!-- ============ SUB-VIEW: Master Data ============ -->
+        <Page id="pageMasterData"
+              title="Master Data"
+              showNavButton="true"
+              navButtonPress=".onNavBack">
+            <content>
+                <HBox wrap="Wrap" class="sapUiMediumMargin">
                     <GenericTile
                         class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
                         frameType="TwoByOne"
-                        header="Master Data Management"
-                        subheader="Manage master data"
-                        visible="{access>/masterData/visible}"
-                        state="{access>/masterData/state}"
-                        press=".onMasterDataPress">
-                        <TileContent footer="{access>/masterData/note}">
+                        header="Master Data Submitter"
+                        subheader="Create and maintain master data"
+                        visible="{access>/dest/masterData_submit/visible}"
+                        state="{access>/dest/masterData_submit/state}"
+                        press=".onDestinationPress">
+                        <customData>
+                            <core:CustomData key="dest" value="masterData.submit" />
+                        </customData>
+                        <TileContent footer="{access>/dest/masterData_submit/note}">
                             <ImageContent src="sap-icon://database" />
                         </TileContent>
                     </GenericTile>
@@ -42,25 +107,41 @@
                     <GenericTile
                         class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
                         frameType="TwoByOne"
-                        header="Master Data Approval"
-                        subheader="Review master data records"
-                        visible="{access>/approvalMasterData/visible}"
-                        state="{access>/approvalMasterData/state}"
-                        press=".onMasterApprovalPress">
-                        <TileContent footer="{access>/approvalMasterData/note}">
+                        header="Master Data Approver"
+                        subheader="Approval dashboard"
+                        visible="{access>/dest/masterData_approve/visible}"
+                        state="{access>/dest/masterData_approve/state}"
+                        press=".onDestinationPress">
+                        <customData>
+                            <core:CustomData key="dest" value="masterData.approve" />
+                        </customData>
+                        <TileContent footer="{access>/dest/masterData_approve/note}">
                             <ImageContent src="sap-icon://approvals" />
                         </TileContent>
                     </GenericTile>
+                </HBox>
+            </content>
+        </Page>
 
+        <!-- ============ SUB-VIEW: Pricing ============ -->
+        <Page id="pagePricing"
+              title="Pricing Calculation"
+              showNavButton="true"
+              navButtonPress=".onNavBack">
+            <content>
+                <HBox wrap="Wrap" class="sapUiMediumMargin">
                     <GenericTile
                         class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
                         frameType="TwoByOne"
-                        header="Vehicle Pricing"
-                        subheader="Calculate vehicle pricing"
-                        visible="{access>/pricing/visible}"
-                        state="{access>/pricing/state}"
-                        press=".onPricingPress">
-                        <TileContent footer="{access>/pricing/note}">
+                        header="Pricing Submitter"
+                        subheader="Calculate and submit pricing"
+                        visible="{access>/dest/pricing_submit/visible}"
+                        state="{access>/dest/pricing_submit/state}"
+                        press=".onDestinationPress">
+                        <customData>
+                            <core:CustomData key="dest" value="pricing.submit" />
+                        </customData>
+                        <TileContent footer="{access>/dest/pricing_submit/note}">
                             <ImageContent src="sap-icon://money-bills" />
                         </TileContent>
                     </GenericTile>
@@ -68,17 +149,82 @@
                     <GenericTile
                         class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
                         frameType="TwoByOne"
-                        header="Pricing Approval"
-                        subheader="Review pricing records"
-                        visible="{access>/approvalPricing/visible}"
-                        state="{access>/approvalPricing/state}"
-                        press=".onPricingApprovalPress">
-                        <TileContent footer="{access>/approvalPricing/note}">
+                        header="Pricing Approver"
+                        subheader="Approval dashboard"
+                        visible="{access>/dest/pricing_approve/visible}"
+                        state="{access>/dest/pricing_approve/state}"
+                        press=".onDestinationPress">
+                        <customData>
+                            <core:CustomData key="dest" value="pricing.approve" />
+                        </customData>
+                        <TileContent footer="{access>/dest/pricing_approve/note}">
                             <ImageContent src="sap-icon://approvals" />
                         </TileContent>
                     </GenericTile>
                 </HBox>
-            </VBox>
-        </content>
-    </Page>
+            </content>
+        </Page>
+
+        <!-- ============ UBAC ADMIN SCREEN ============ -->
+        <Page id="pageUbac"
+              title="User Access Control"
+              showNavButton="true"
+              navButtonPress=".onNavBack">
+            <content>
+                <VBox class="sapUiMediumMargin">
+                    <Title text="Add assignment" level="H3" class="sapUiSmallMarginBottom" />
+
+                    <HBox alignItems="Center" wrap="Wrap" class="sapUiSmallMarginBottom">
+                        <Input value="{access>/admin/newEmail}"
+                               type="Email"
+                               placeholder="user@company.com"
+                               width="20rem"
+                               class="sapUiSmallMarginEnd"
+                               submit=".onAddUser" />
+
+                        <Select selectedKey="{access>/admin/newRole}"
+                                forceSelection="false"
+                                width="14rem"
+                                class="sapUiSmallMarginEnd"
+                                items="{access>/admin/roles}">
+                            <core:Item key="{access>key}" text="{access>key}" />
+                        </Select>
+
+                        <Button text="Add"
+                                icon="sap-icon://add"
+                                type="Emphasized"
+                                press=".onAddUser" />
+                    </HBox>
+
+                    <Table id="tblUserRoles"
+                           items="{access>/admin/items}"
+                           busy="{access>/admin/busy}"
+                           mode="Delete"
+                           delete=".onDeleteUser"
+                           noDataText="No assignments found"
+                           growing="true"
+                           growingThreshold="20">
+                        <headerToolbar>
+                            <Toolbar>
+                                <Title text="User role assignments" />
+                            </Toolbar>
+                        </headerToolbar>
+                        <columns>
+                            <Column><Text text="Email" /></Column>
+                            <Column><Text text="Role" /></Column>
+                        </columns>
+                        <items>
+                            <ColumnListItem>
+                                <cells>
+                                    <Text text="{access>userId}" />
+                                    <Text text="{access>role}" />
+                                </cells>
+                            </ColumnListItem>
+                        </items>
+                    </Table>
+                </VBox>
+            </content>
+        </Page>
+
+    </NavContainer>
 </mvc:View>

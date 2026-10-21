@@ -1,176 +1,132 @@
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
-    "sap/ui/model/json/JSONModel",
-    "sap/m/MessageToast"
-], function (Controller, JSONModel, MessageToast) {
+    "sap/m/MessageToast",
+    "sap/m/MessageBox",
+    "vpauseraccess/model/access"
+], function (Controller, MessageToast, MessageBox, Access) {
     "use strict";
-
-    // true  = tiles without access stay visible but disabled
-    // false = tiles without access are hidden
-    var SHOW_DISABLED = false;
-
-    // available:false = app not deployed yet (tile shows "Coming soon" and cannot be opened)
-    var TILES = {
-        masterData:         { semanticObject: "VPAMasterData",     action: "display", available: true },
-        approvalMasterData: { semanticObject: "VPAMasterApproval", action: "display", available: true },
-        pricing:            { semanticObject: "VPAPricing",        action: "display", available: true },
-        approvalPricing:    { semanticObject: "VPAApproval",       action: "display", available: true }
-    };
-
-    var LEVEL_TEXT = { act: "Can approve", view: "View only" };
-
-    function tile(sKey, bAllowed, sNote) {
-        var bOpen = bAllowed && TILES[sKey].available;
-        var aNote = [];
-
-        if (!bAllowed) {
-            aNote.push("No access");
-        } else {
-            if (sNote) { aNote.push(sNote); }
-            if (!TILES[sKey].available) { aNote.push("Coming soon"); }
-        }
-
-        return {
-            allowed: bAllowed,
-            open: bOpen,
-            visible: bAllowed || SHOW_DISABLED,
-            state: bOpen ? "Loaded" : "Disabled",
-            note: aNote.join(" | ")
-        };
-    }
-
-    // "act" wins over "view"; "" = no access to that domain's approvals
-    function approvalLevel(aApps, sDomain) {
-        if (aApps.indexOf("approval." + sDomain + ".act") !== -1) { return "act"; }
-        if (aApps.indexOf("approval." + sDomain + ".view") !== -1) { return "view"; }
-        return "";
-    }
 
     return Controller.extend("vpauseraccess.controller.ubac", {
 
         onInit: function () {
-            this.getView().setModel(new JSONModel({
-                ready: false,
-                none: false,
-                error: "",
-                masterData: tile("masterData", false),
-                approvalMasterData: tile("approvalMasterData", false),
-                pricing: tile("pricing", false),
-                approvalPricing: tile("approvalPricing", false)
-            }), "access");
-
-            this._initShell();
+            // The "access" model is created and filled by Component.js
+            this._oModel = this.getOwnerComponent().getModel("access");
         },
 
-        _initShell: async function () {
-            var oUserText = this.byId("userText");
-            var oContainer = sap.ushell && sap.ushell.Container;
+        // ---------- navigation ----------
 
-            if (!oContainer || !oContainer.getServiceAsync) {
-                oUserText.setText("");
-                this._setError("Launch this app from Work Zone.");
-                return;
-            }
+        _nav: function () { return this.byId("nav"); },
 
-            var sEmail = "";
-            try {
-                var oUserInfo = await oContainer.getServiceAsync("UserInfo");
-                sEmail = (oUserInfo.getEmail() || "").trim().toLowerCase();
-                oUserText.setText(
-                    "Logged-in user: " + (oUserInfo.getFullName() || oUserInfo.getId()) +
-                    (sEmail ? " (" + sEmail + ")" : "")
-                );
-            } catch (oError) {
-                console.error("Unable to read UserInfo:", oError);
-                this._setError("Unable to read the logged-in user.");
-                return;
-            }
+        // Group tile (Master Data / Pricing / UBAC). View passes the group via customData "group".
+        onGroupPress: function (oEvent) {
+            var sGroup = oEvent.getSource().data("group");
+            var oGroup = this._oModel.getProperty("/groups/" + sGroup);
 
-            if (!sEmail) {
-                this._setError("Your email address is not available from Work Zone.");
-                return;
-            }
-
-            try {
-                var oAccess = await this._loadAccess(sEmail);
-                console.log("me():", oAccess);
-                this._applyAccess(oAccess);
-            } catch (oError) {
-                console.error("Unable to load access:", oError);
-                this._setError("Unable to load your access. Please try again later.");
-            }
-        },
-
-        // Asks the backend which roles/apps belong to this email
-        _loadAccess: async function (sEmail) {
-            var sSafe = encodeURIComponent(sEmail.replace(/'/g, "''"));
-            var sUrl = sap.ui.require.toUrl("vpauseraccess") + "/access/me(email='" + sSafe + "')";
-
-            var oResponse = await fetch(sUrl, { headers: { Accept: "application/json" } });
-            if (!oResponse.ok) {
-                throw new Error("me() failed: HTTP " + oResponse.status);
-            }
-            return oResponse.json();
-        },
-
-        _applyAccess: function (oAccess) {
-            var aApps = (oAccess && oAccess.apps) || [];
-            var has = function (sKey) { return aApps.indexOf(sKey) !== -1; };
-
-            var sMd = approvalLevel(aApps, "masterData");
-            var sPr = approvalLevel(aApps, "pricing");
-
-            var oData = {
-                ready: true,
-                error: "",
-                masterData: tile("masterData", has("masterData")),
-                approvalMasterData: tile("approvalMasterData", !!sMd, LEVEL_TEXT[sMd]),
-                pricing: tile("pricing", has("pricing")),
-                approvalPricing: tile("approvalPricing", !!sPr, LEVEL_TEXT[sPr])
-            };
-            oData.none = !(oData.masterData.allowed || oData.approvalMasterData.allowed ||
-                           oData.pricing.allowed || oData.approvalPricing.allowed);
-
-            this.getView().getModel("access").setData(oData);
-        },
-
-        _setError: function (sMessage) {
-            this.getView().getModel("access").setProperty("/error", sMessage);
-        },
-
-        _navigate: async function (sKey) {
-            var oModel = this.getView().getModel("access");
-
-            if (!oModel.getProperty("/" + sKey + "/allowed")) {
+            if (!oGroup || !oGroup.allowed) {
                 MessageToast.show("You do not have access to this application.");
                 return;
             }
-            if (!oModel.getProperty("/" + sKey + "/open")) {
-                MessageToast.show("This application is not available yet.");
+            if (sGroup === "ubac") {
+                this._nav().to(this.byId("pageUbac"));
+                this._loadUsers();
                 return;
             }
+            if (oGroup.target) {                                   // exactly one destination -> direct
+                Access.go(this._oModel, oGroup.target);
+                return;
+            }
+            this._nav().to(this.byId(Access.GROUP_PAGES[sGroup])); // two destinations -> sub-view
+        },
 
-            var oContainer = sap.ushell && sap.ushell.Container;
-            if (!oContainer || !oContainer.getServiceAsync) {
-                MessageToast.show("Launch this application from Work Zone.");
+        // Tile inside a sub-view. View passes the key via customData "dest", e.g. "pricing.submit".
+        onDestinationPress: function (oEvent) {
+            Access.go(this._oModel, oEvent.getSource().data("dest"));
+        },
+
+        onNavBack: function () {
+            this._nav().to(this.byId("pageHome"));
+        },
+
+        // ---------- UBAC admin screen (UserRoles) ----------
+
+        // Every call sends the caller's email; the backend returns 403 for non-admins
+        _api: async function (sMethod, sPath, oBody) {
+            var oResponse = await fetch(Access.base() + sPath, {
+                method: sMethod,
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                    "x-user-email": this._oModel.getProperty("/email")
+                },
+                body: oBody ? JSON.stringify(oBody) : undefined
+            });
+            if (!oResponse.ok) { throw await Access.toError(oResponse); }
+            return oResponse.status === 204 ? null : oResponse.json();
+        },
+
+        _loadUsers: async function () {
+            var oModel = this._oModel;
+            oModel.setProperty("/admin/busy", true);
+            try {
+                var oResult = await this._api("GET", "UserRoles?$select=ID,userId,role&$orderby=userId,role");
+                oModel.setProperty("/admin/items", (oResult && oResult.value) || []);
+            } catch (oError) {
+                console.error("Loading UserRoles failed:", oError);
+                MessageToast.show("Unable to load assignments: " + oError.message);
+            } finally {
+                oModel.setProperty("/admin/busy", false);
+            }
+        },
+
+        onAddUser: async function () {
+            var oModel = this._oModel;
+            var sEmail = Access.clean(oModel.getProperty("/admin/newEmail"));
+            var sRole = oModel.getProperty("/admin/newRole");
+
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sEmail)) {
+                MessageToast.show("Enter a valid email address.");
+                return;
+            }
+            if (!sRole) {
+                MessageToast.show("Select a role.");
                 return;
             }
 
             try {
-                var oNav = await oContainer.getServiceAsync("Navigation");
-                oNav.navigate({ target: {
-                    semanticObject: TILES[sKey].semanticObject,
-                    action: TILES[sKey].action
-                } });
+                await this._api("POST", "UserRoles", { userId: sEmail, role: sRole });
+                oModel.setProperty("/admin/newEmail", "");
+                oModel.setProperty("/admin/newRole", "");
+                MessageToast.show("Assignment added.");
+                this._loadUsers();
             } catch (oError) {
-                console.error("Navigation failed:", oError);
-                MessageToast.show("Navigation is not available.");
+                console.error("Add failed:", oError);
+                MessageBox.error("Could not add the assignment.\n" + oError.message);
             }
         },
 
-        onMasterDataPress:     function () { this._navigate("masterData"); },
-        onMasterApprovalPress: function () { this._navigate("approvalMasterData"); },
-        onPricingPress:        function () { this._navigate("pricing"); },
-        onPricingApprovalPress: function () { this._navigate("approvalPricing"); }
+        // Table mode="Delete" fires the "delete" event with the row as "listItem"
+        onDeleteUser: function (oEvent) {
+            var oItem = oEvent.getParameter("listItem").getBindingContext("access").getObject();
+
+            // Safety guard: an admin cannot remove their own Admin role (would lock them out)
+            if (oItem.userId === this._oModel.getProperty("/email") && oItem.role === "Admin") {
+                MessageToast.show("You cannot remove your own Admin role.");
+                return;
+            }
+
+            MessageBox.confirm("Remove " + oItem.role + " from " + oItem.userId + "?", {
+                onClose: async function (sAction) {
+                    if (sAction !== MessageBox.Action.OK) { return; }
+                    try {
+                        await this._api("DELETE", "UserRoles(" + oItem.ID + ")");
+                        MessageToast.show("Assignment removed.");
+                        this._loadUsers();
+                    } catch (oError) {
+                        console.error("Delete failed:", oError);
+                        MessageBox.error("Could not remove the assignment.\n" + oError.message);
+                    }
+                }.bind(this)
+            });
+        }
     });
 });
