@@ -20,24 +20,24 @@ sap.ui.define([
             // set the device model
             this.setModel(models.createDeviceModel(), "device");
 
-            // set the access model (filled below)
+            // set the access model
             const oModel = Access.createModel();
             this.setModel(oModel, "access");
 
-            // Start the router only after access is known, so a single-destination
-            // user is redirected before the hub is ever drawn.
-            Access.load(oModel).then((oData) => {
-                const sTarget = oData ? Access.redirectTarget(oData) : "";
-                return sTarget ? Access.go(oModel, sTarget) : false;
-            }).catch((oError) => {
-                console.error("Startup failed:", oError);
-                return false;
-            }).then((bRedirected) => {
-                if (!bRedirected) {
-                    // enable routing
-                    this.getRouter().initialize();
+            // which launchpad tile opened the app? (default parameter "mode" of the intent)
+            const oData = this.getComponentData();
+            const oParams = (oData && oData.startupParameters) || {};
+            const sMode = (oParams.mode && oParams.mode[0]) || "";
+            console.log("VPA tile mode:", sMode);
+
+            Access.load(oModel, sMode).then((oDecision) => {
+                if (oDecision && oDecision.screen === "redirect") {
+                    return Access.handleRedirect(oModel, sMode, oDecision.target);
                 }
-            });
+            }).catch((oError) => console.error("Startup failed:", oError));
+
+            // enable routing
+            this.getRouter().initialize();
         }
     });
 });

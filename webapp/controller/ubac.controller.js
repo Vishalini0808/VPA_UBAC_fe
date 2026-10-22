@@ -11,40 +11,28 @@ sap.ui.define([
         onInit: function () {
             // The "access" model is created and filled by Component.js
             this._oModel = this.getOwnerComponent().getModel("access");
+
+            // load the assignments as soon as the UBAC screen is shown
+            this._oScreenBinding = this._oModel.bindProperty("/screen");
+            this._oScreenBinding.attachChange(function () {
+                if (this._oModel.getProperty("/screen") === "ubac") { this._loadUsers(); }
+            }, this);
+        },
+
+        onExit: function () {
+            this._oScreenBinding.destroy();
         },
 
         // ---------- navigation ----------
 
-        _nav: function () { return this.byId("nav"); },
-
-        // Group tile (Master Data / Pricing / UBAC). View passes the group via customData "group".
-        onGroupPress: function (oEvent) {
-            var sGroup = oEvent.getSource().data("group");
-            var oGroup = this._oModel.getProperty("/groups/" + sGroup);
-
-            if (!oGroup || !oGroup.allowed) {
-                MessageToast.show("You do not have access to this application.");
-                return;
-            }
-            if (sGroup === "ubac") {
-                this._nav().to(this.byId("pageUbac"));
-                this._loadUsers();
-                return;
-            }
-            if (oGroup.target) {                                   // exactly one destination -> direct
-                Access.go(this._oModel, oGroup.target);
-                return;
-            }
-            this._nav().to(this.byId(Access.GROUP_PAGES[sGroup])); // two destinations -> sub-view
-        },
-
-        // Tile inside a sub-view. View passes the key via customData "dest", e.g. "pricing.submit".
+        // Tile on the 2-tile screen. View passes the key via customData "dest", e.g. "pricing.submit".
         onDestinationPress: function (oEvent) {
             Access.go(this._oModel, oEvent.getSource().data("dest"));
         },
 
+        // Back to the launchpad
         onNavBack: function () {
-            this._nav().to(this.byId("pageHome"));
+            Access.goBack();
         },
 
         // ---------- UBAC admin screen (UserRoles) ----------

@@ -4,90 +4,33 @@
     xmlns:core="sap.ui.core"
     xmlns="sap.m">
 
-    <NavContainer id="nav" initialPage="pageHome" height="100%">
+    <Page id="page"
+          title="{access>/title}"
+          showNavButton="true"
+          navButtonPress=".onNavBack">
+        <content>
+            <VBox class="sapUiMediumMargin" width="100%">
 
-        <!-- ============ HOME: group tiles ============ -->
-        <Page id="pageHome" title="VPA User Access Control">
-            <content>
-                <VBox class="sapUiMediumMargin" width="100%">
-                    <Title text="Welcome to VPA" level="H2" />
+                <Text text="{access>/userText}" class="sapUiSmallMarginBottom" />
 
-                    <Text text="{access>/userText}"
-                          class="sapUiSmallMarginBottom" />
+                <MessageStrip text="{access>/error}"
+                              type="Error"
+                              showIcon="true"
+                              visible="{= !!${access>/error} }"
+                              class="sapUiSmallMarginBottom" />
 
-                    <MessageStrip text="{access>/error}"
-                                  type="Error"
-                                  showIcon="true"
-                                  visible="{= !!${access>/error} }"
-                                  class="sapUiSmallMarginBottom" />
+                <!-- loading -->
+                <Text text="Checking your access..."
+                      visible="{= ${access>/screen} === 'loading' &amp;&amp; !${access>/error} }" />
 
-                    <Title text="Applications"
-                           level="H3"
-                           class="sapUiMediumMarginTop sapUiSmallMarginBottom" />
-
-                    <Text text="No applications are assigned to your account."
-                          visible="{= ${access>/ready} &amp;&amp; ${access>/none} }" />
-
-                    <HBox wrap="Wrap">
-                        <GenericTile
-                            class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
-                            frameType="TwoByOne"
-                            header="Master Data"
-                            subheader="Manage master data"
-                            visible="{access>/groups/masterData/visible}"
-                            state="{access>/groups/masterData/state}"
-                            press=".onGroupPress">
-                            <customData>
-                                <core:CustomData key="group" value="masterData" />
-                            </customData>
-                            <TileContent footer="{access>/groups/masterData/note}">
-                                <ImageContent src="sap-icon://database" />
-                            </TileContent>
-                        </GenericTile>
-
-                        <GenericTile
-                            class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
-                            frameType="TwoByOne"
-                            header="Pricing Calculation"
-                            subheader="Calculate and approve pricing"
-                            visible="{access>/groups/pricing/visible}"
-                            state="{access>/groups/pricing/state}"
-                            press=".onGroupPress">
-                            <customData>
-                                <core:CustomData key="group" value="pricing" />
-                            </customData>
-                            <TileContent footer="{access>/groups/pricing/note}">
-                                <ImageContent src="sap-icon://money-bills" />
-                            </TileContent>
-                        </GenericTile>
-
-                        <GenericTile
-                            class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
-                            frameType="TwoByOne"
-                            header="UBAC"
-                            subheader="Manage user access"
-                            visible="{access>/groups/ubac/visible}"
-                            state="{access>/groups/ubac/state}"
-                            press=".onGroupPress">
-                            <customData>
-                                <core:CustomData key="group" value="ubac" />
-                            </customData>
-                            <TileContent footer="{access>/groups/ubac/note}">
-                                <ImageContent src="sap-icon://user-settings" />
-                            </TileContent>
-                        </GenericTile>
-                    </HBox>
+                <!-- no access / coming soon / unknown -->
+                <VBox visible="{= ${access>/screen} === 'message' }">
+                    <Title text="{access>/messageTitle}" level="H2" class="sapUiSmallMarginBottom" />
+                    <Text text="{access>/messageText}" />
                 </VBox>
-            </content>
-        </Page>
 
-        <!-- ============ SUB-VIEW: Master Data ============ -->
-        <Page id="pageMasterData"
-              title="Master Data"
-              showNavButton="true"
-              navButtonPress=".onNavBack">
-            <content>
-                <HBox wrap="Wrap" class="sapUiMediumMargin">
+                <!-- Master Data: 2 tiles (admin) -->
+                <HBox wrap="Wrap" visible="{= ${access>/screen} === 'masterData' }">
                     <GenericTile
                         class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
                         frameType="TwoByOne"
@@ -120,16 +63,9 @@
                         </TileContent>
                     </GenericTile>
                 </HBox>
-            </content>
-        </Page>
 
-        <!-- ============ SUB-VIEW: Pricing ============ -->
-        <Page id="pagePricing"
-              title="Pricing Calculation"
-              showNavButton="true"
-              navButtonPress=".onNavBack">
-            <content>
-                <HBox wrap="Wrap" class="sapUiMediumMargin">
+                <!-- Pricing: 2 tiles (admin) -->
+                <HBox wrap="Wrap" visible="{= ${access>/screen} === 'pricing' }">
                     <GenericTile
                         class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
                         frameType="TwoByOne"
@@ -162,16 +98,9 @@
                         </TileContent>
                     </GenericTile>
                 </HBox>
-            </content>
-        </Page>
 
-        <!-- ============ UBAC ADMIN SCREEN ============ -->
-        <Page id="pageUbac"
-              title="User Access Control"
-              showNavButton="true"
-              navButtonPress=".onNavBack">
-            <content>
-                <VBox class="sapUiMediumMargin">
+                <!-- UBAC admin screen -->
+                <VBox visible="{= ${access>/screen} === 'ubac' }">
                     <Title text="Add assignment" level="H3" class="sapUiSmallMarginBottom" />
 
                     <HBox alignItems="Center" wrap="Wrap" class="sapUiSmallMarginBottom">
@@ -223,8 +152,8 @@
                         </items>
                     </Table>
                 </VBox>
-            </content>
-        </Page>
 
-    </NavContainer>
+            </VBox>
+        </content>
+    </Page>
 </mvc:View>
