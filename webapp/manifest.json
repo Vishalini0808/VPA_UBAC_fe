@@ -23,13 +23,57 @@
     },
     "crossNavigation": {
       "inbounds": {
+        "VPAMasterDataHub-display": {
+          "semanticObject": "VPAMasterDataHub",
+          "action": "display",
+          "title": "VPA",
+          "subTitle": "Master data applications",
+          "icon": "sap-icon://database",
+          "signature": {
+            "parameters": {
+              "mode": {
+                "defaultValue": {
+                  "value": "masterData"
+                },
+                "required": false
+              }
+            },
+            "additionalParameters": "allowed"
+          }
+        },
+        "VPAPricingHub-display": {
+          "semanticObject": "VPAPricingHub",
+          "action": "display",
+          "title": "Pricing Calculation",
+          "subTitle": "Pricing applications",
+          "icon": "sap-icon://money-bills",
+          "signature": {
+            "parameters": {
+              "mode": {
+                "defaultValue": {
+                  "value": "pricing"
+                },
+                "required": false
+              }
+            },
+            "additionalParameters": "allowed"
+          }
+        },
         "VPAUserAccess-manage": {
           "semanticObject": "VPAUserAccess",
           "action": "manage",
-          "title": "{{VPAUserAccess-manage.flpTitle}}",
-          "subTitle": "{{VPAUserAccess-manage.flpSubtitle}}",
+          "title": "UBAC",
+          "subTitle": "Manage user access",
+          "icon": "sap-icon://user-settings",
           "signature": {
-            "parameters": {},
+            "parameters": {
+              "mode": {
+                "defaultValue": {
+                  "value": "ubac"
+                },
+                "required": false
+              }
+            },
             "additionalParameters": "allowed"
           }
         }
@@ -70,7 +114,9 @@
         "type": "sap.ui.model.resource.ResourceModel",
         "settings": {
           "bundleName": "vpauseraccess.i18n.i18n",
-          "supportedLocales": [""],
+          "supportedLocales": [
+            ""
+          ],
           "fallbackLocale": ""
         }
       }
